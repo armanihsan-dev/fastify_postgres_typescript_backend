@@ -1,8 +1,7 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { db } from '../db/db';
 import { users } from '../db/schema';
-import { eq } from 'drizzle-orm';
-import { sql } from 'drizzle-orm'; // For raw SQL
+import { eq, ilike } from 'drizzle-orm';
 
 interface UserParams {
   id: string;
@@ -27,28 +26,6 @@ export async function userRoutes(fastify: FastifyInstance) {
         reply
           .status(500)
           .send({ success: false, error: 'Failed to fetch users' });
-      }
-    }
-  );
-
-  fastify.get(
-    '/users/raw',
-    async (request: FastifyRequest, reply: FastifyReply) => {
-      try {
-        const result = await db.execute(sql`SELECT * FROM users`);
-        reply.status(200).send({
-          success: true,
-          method: 'raw-sql',
-          query: 'SELECT * FROM users',
-          count: result.rows.length,
-          data: result.rows,
-        });
-      } catch (error) {
-        fastify.log.error(error);
-        reply.status(500).send({
-          success: false,
-          error: 'Failed to fetch users with raw SQL',
-        });
       }
     }
   );
@@ -88,71 +65,35 @@ export async function userRoutes(fastify: FastifyInstance) {
       }
     }
   );
-
-  fastify.get(
-    '/users/:id/raw',
-    async (
-      request: FastifyRequest<{ Params: UserParams }>,
-      reply: FastifyReply
-    ) => {
-      try {
-        const { id } = request.params;
-
-        const result = await db.execute(
-          sql`SELECT * FROM users WHERE id = ${id}`
-        );
-        if (result.rows.length === 0) {
-          return reply.status(404).send({
-            success: false,
-            error: `User with id ${id} not found`,
-          });
-        }
-
-        reply.status(200).send({
-          success: true,
-          method: 'raw-sql',
-          query: `SELECT * FROM users WHERE id = ${id}`,
-          data: result.rows[0],
-        });
-      } catch (error) {
-        fastify.log.error(error);
-        reply
-          .status(500)
-          .send({ success: false, error: 'Failed to fetch user with raw SQL' });
-      }
-    }
-  );
-
   fastify.get(
     '/users/search',
     async (
-      request: FastifyRequest<{ Querystring: { username?: string } }>,
+      request: FastifyRequest<{ Querystring: { username: string } }>,
       reply: FastifyReply
     ) => {
       try {
         const { username } = request.query;
-
         if (!username) {
           return reply.status(400).send({
             success: false,
-            error: 'username query parameter is required',
+            error: 'email query parameter is required',
           });
         }
-
-        const result = await db.execute(sql`
-            SELECT * FROM users 
-            WHERE username ILIKE ${`%${username}%`}
-            ORDER BY id;
-            `);
+        const result = await db
+          .select()
+          .from(users)
+          .where(ilike(users.email, `%${username}%`))
+          .orderBy(users.id);
+        console.log(result);
         reply.status(200).send({
           success: true,
           method: 'raw-sql',
           query: `SELECT * FROM users WHERE username ILIKE '%${username}%'`,
-          count: result.rows.length,
-          data: result.rows,
+          count: result.length,
+          data: result,
         });
-      } catch (error) {
-        fastify.log.error(error);
+      } catch (err) {
+        fastify.log.error(err);
         reply.status(500).send({ success: false, error: 'Search failed' });
       }
     }
@@ -172,17 +113,18 @@ export async function userRoutes(fastify: FastifyInstance) {
             error: 'email query parameter is required',
           });
         }
-        const result = await db.execute(sql`
-        SELECT * FROM users
-        WHERE email ILIKE ${`%${useremail}%`}
-          `);
-
+        const result = await db
+          .select()
+          .from(users)
+          .where(ilike(users.email, `%${useremail}%`))
+          .orderBy(users.id);
+        console.log(result);
         reply.status(200).send({
           success: true,
           method: 'raw-sql',
           query: `SELECT * FROM users WHERE username ILIKE '%${useremail}%'`,
-          count: result.rows.length,
-          data: result.rows,
+          count: result.length,
+          data: result,
         });
       } catch (err) {
         fastify.log.error(err);
