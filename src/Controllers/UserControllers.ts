@@ -2,12 +2,13 @@ import { FastifyRequest, FastifyReply } from 'fastify';
 import { db } from '../db/db';
 import { users } from '../db/schema';
 import { asc, eq, ilike } from 'drizzle-orm';
+import { requestBody } from '../routes/UserRoutes';
 
 // Interface definitions
 interface UserParams {
   id: string;
 }
-type GetUsersQuery = Partial<{
+export type GetUsersQuery = Partial<{
   limit: string;
   offset: string;
   page: string;
@@ -30,6 +31,7 @@ export const getAllUsers = async (
   request: FastifyRequest,
   reply: FastifyReply
 ) => {
+  console.log('get all users from pre handler', request.user);
   const allUsers = await db.select().from(users);
   reply.send({ success: true, count: allUsers.length, data: allUsers });
 };
