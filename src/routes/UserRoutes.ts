@@ -20,38 +20,6 @@ export type requestBody = {
   createdAt: string;
 };
 export async function userRoutes(fastify: FastifyInstance) {
-  // fastify.addHook(
-  //   'onRequest',
-  //   async (req: FastifyRequest, replay: FastifyReply) => {
-  //     console.log(`Incoming request: ${req.method} ${req.url}`);
-
-  //     console.log('Client Ip:', req.ip);
-  //   }
-  // );
-
-  // fastify.addHook(
-  //   'preValidation',
-  //   async (
-  //     request: FastifyRequest<{
-  //       Querystring: GetUsersQuery;
-  //       Body: requestBody;
-  //     }>,
-  //     replay: FastifyReply
-  //   ) => {
-  //     if (!request.query.page) {
-  //       request.query.page = '1';
-  //     }
-
-  //     if (request.query.limit) {
-  //       request.query.limit = parseInt(request.query.limit).toString();
-  //     }
-
-  //     if (request.method !== 'GET' && request.body && !request.body.createdAt) {
-  //       request.body.createdAt = new Date().toISOString();
-  //     }
-  //   }
-  // );
-
   // GET Route: Get all users
   fastify.get('/users', getAllUsers);
   fastify.get('/users/paginated', getUserWithPagination);

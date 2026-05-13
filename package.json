@@ -4,7 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "tsx watch --env-file=.env src/index.ts"
+    "dev": "tsx watch --env-file=.env src/index.ts",
+    "test": "tsx --env-file=.env test.ts",
+    "npx:generate": "npx drizzle-kit generate",
+    "npx:migrate": "npx drizzle-kit migrate"
   },
   "keywords": [],
   "author": "",

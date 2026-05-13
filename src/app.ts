@@ -8,6 +8,7 @@ import { AuthRoutes } from './routes/AuthRoutes';
 import { db } from './db/db';
 import { users } from './db/schema';
 import { eq } from 'drizzle-orm';
+import { PostsRoutes } from './routes/PostRoutes';
 
 export default async function buildApp(): Promise<FastifyInstance> {
   const fastify = Fastify({
@@ -54,17 +55,23 @@ export default async function buildApp(): Promise<FastifyInstance> {
   );
 
   await fastify.register(userRoutes, { prefix: '/api/v1' });
+  await fastify.register(PostsRoutes, { prefix: '/api/v1' });
   await fastify.register(AuthRoutes, { prefix: '/api/v1' });
-
   fastify.get('/health', async (request, reply) => {
     return { status: 'ok', timestamp: new Date().toISOString() };
   });
 
   fastify.setErrorHandler((error, request, reply) => {
+    // Use the error's statusCode if it exists, otherwise default to 500
+    const statusCode = error.statusCode || 500;
+
     fastify.log.error(error);
-    reply.status(500).send({
+
+    reply.status(statusCode).send({
       success: false,
       error: error.message || 'Internal server error',
+      // Optional: Add stack trace only in development
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
     });
   });
   return fastify;
