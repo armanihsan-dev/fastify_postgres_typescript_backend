@@ -1,5 +1,6 @@
 import { eq } from 'drizzle-orm';
 import { db } from './src/db/db';
+import { Type, Static } from '@sinclair/typebox';
 import { posts, users } from './src/db/schema';
 
 type testTypes = {
@@ -67,7 +68,7 @@ async function leftJoin() {
 }
 // console.log(await leftJoin());
 //console.log(await innerJoin());
-console.log(await getAll());
+//console.log(await getAll());
 
 // const result = await update({
 //   title: 'Munnu posting someting',
@@ -86,3 +87,23 @@ console.log(await getAll());
 // const result = await deleteTest(2);
 // console.log(result);
 console.log('✅ Successfully queried');
+
+const userSchema = Type.Object({
+  name: Type.String(),
+  age: Type.Number(),
+  email: Type.String(),
+});
+
+type userObj = Static<typeof userSchema>;
+
+const obj: userObj = {
+  name: 'John Doe',
+  age: 30,
+  email: 'ahi',
+};
+
+interface FastifyRequestt {
+  url: string;
+  method: string;
+  headers: object;
+}

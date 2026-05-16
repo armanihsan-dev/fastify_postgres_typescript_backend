@@ -214,7 +214,7 @@ export const updateUser = async (
     }
 
     const updateUser: Partial<typeof users.$inferInsert> = {};
-    
+
     if (username !== undefined) updateUser.username = username;
     if (email !== undefined) updateUser.email = email;
     if (isActive !== undefined) updateUser.isActive = isActive;

@@ -7,7 +7,9 @@ export const users = pgTable('users', {
   username: text('username').notNull(),
   email: text('email').notNull(),
   isActive: boolean('is_active').default(true),
+  passwordHash: text('password_hash').notNull(),
   createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
 });
 
 export const session = pgTable('sessions', {
@@ -23,10 +25,13 @@ export const posts = pgTable('posts', {
   id: serial('id').primaryKey(),
   title: text('title').notNull(),
   content: text('content').notNull(),
+  published: boolean('published').default(false),
   userId: integer('user_id').references(() => users.id, {
     onDelete: 'restrict',
     onUpdate: 'cascade',
   }),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
 });
 
 export const userRelation = relations(users, ({ many }) => ({

@@ -32,14 +32,6 @@ export async function userRoutes(fastify: FastifyInstance) {
   // POST Route: Create new user
   fastify.post('/users', { schema: createUserSchema }, createUser);
 
-  fastify.post(
-    '/posting',
-    async (request: FastifyRequest, reply: FastifyReply) => {
-      const body = request.body as { email: string };
-      console.log(request.user);
-      return reply.status(200).send(request.user);
-    }
-  );
 
   // PUT Route: Update user
   fastify.put('/users/:id', { schema: updateUserSchema }, updateUser);

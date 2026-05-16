@@ -6,21 +6,29 @@
   "scripts": {
     "dev": "tsx watch --env-file=.env src/index.ts",
     "test": "tsx --env-file=.env test.ts",
-    "npx:generate": "npx drizzle-kit generate",
-    "npx:migrate": "npx drizzle-kit migrate"
+    "gen": "npx drizzle-kit generate",
+    "mig": "npx drizzle-kit migrate"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "module",
   "dependencies": {
+    "@fastify/cors": "^11.2.0",
+    "@fastify/helmet": "^13.0.2",
+    "@fastify/jwt": "^10.0.0",
     "@fastify/postgres": "^6.0.2",
+    "@fastify/swagger": "^9.7.0",
+    "@fastify/swagger-ui": "^5.2.6",
+    "@sinclair/typebox": "^0.34.49",
+    "bcrypt": "^6.0.0",
     "dotenv": "^17.4.2",
     "drizzle-orm": "^0.45.2",
     "fastify": "^5.8.5",
     "pg": "^8.20.0"
   },
   "devDependencies": {
+    "@types/bcrypt": "^6.0.0",
     "@types/node": "^25.6.0",
     "@types/pg": "^8.20.0",
     "drizzle-kit": "^0.31.10",
