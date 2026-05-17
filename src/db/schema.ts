@@ -44,3 +44,28 @@ export const postsRelation = relations(posts, ({ one }) => ({
     references: [users.id],
   }),
 }));
+
+
+export const products = pgTable('products', {
+  id: serial('id').primaryKey(),
+  name: text('name').notNull(),
+  price: integer('price').notNull(), // in cents
+  stock: integer('stock').notNull().default(0),
+});
+
+export const orders = pgTable('orders', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').references(() => users.id),
+  totalAmount: integer('total_amount').notNull(),
+  status: text('status').default('pending'), // pending, paid, shipped, cancelled
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
+
+export const orderItems = pgTable('order_items', {
+  id: serial('id').primaryKey(),
+  orderId: integer('order_id').references(() => orders.id, { onDelete: 'cascade' }),
+  productId: integer('product_id').references(() => products.id),
+  quantity: integer('quantity').notNull(),
+  priceAtTime: integer('price_at_time').notNull(), // Snapshot of price
+});

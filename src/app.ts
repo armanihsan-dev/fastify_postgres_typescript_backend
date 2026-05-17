@@ -10,6 +10,7 @@ import fastifyHelmet from '@fastify/helmet';
 import fastifyCors from '@fastify/cors';
 import fastifySwagger from '@fastify/swagger';
 import fastifySwaggerUi from '@fastify/swagger-ui';
+import { checkoutRoutes } from './routes/CheckOut';
 
 export default async function buildApp(): Promise<FastifyInstance> {
 
@@ -89,6 +90,7 @@ export default async function buildApp(): Promise<FastifyInstance> {
   await fastify.register(AuthRoutes, { prefix: '/api/v1' });
   await fastify.register(userRoutes, { prefix: '/api/v1' });
   await fastify.register(PostsRoutes, { prefix: '/api/v1' });
+  await fastify.register(checkoutRoutes, { prefix: '/api/v1' })
 
 
   // custom api testing 

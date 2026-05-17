@@ -1,109 +1,43 @@
+
 import { eq } from 'drizzle-orm';
 import { db } from './src/db/db';
-import { Type, Static } from '@sinclair/typebox';
-import { posts, users } from './src/db/schema';
+import { orderItems, orders, posts, products, users } from './src/db/schema';
 
-type testTypes = {
-  title: string;
-  content: string;
-  userId: number;
-};
 
-async function update({ title, content, userId }: testTypes) {
-  await db
-    .update(posts)
-    .set({
-      title,
-      content,
-      userId,
+
+let QTY: number = 5
+let userId: number = 4
+let productId: number = 10
+
+await db.transaction(async (tx) => {
+    // 1. Used 'tx' (Correct)
+    const product = await tx.select().from(products).where(eq(products.id, productId)).for('update')
+
+    if (!product[0] || product[0].stock < QTY) {
+        // Throwing an error here automatically rolls back the transaction in Drizzle
+        throw new Error('Insufficient stock');
+    }
+
+    // 2. FIXED: Changed 'db' to 'tx'
+    const order = await tx.insert(orders).values({
+        userId,
+        totalAmount: product[0].price * QTY,
+        status: "Placed"
+    }).returning()
+
+    // 3. FIXED: Changed 'db' to 'tx'
+    await tx.insert(orderItems).values({
+        priceAtTime: product[0].price, // Double check: usually you want unit price here, not totalAmount!
+        productId,
+        quantity: QTY,
+        orderId: order[0].id,
     })
-    .where(eq(posts.id, 5));
-}
-const insert = async ({ title, content, userId }: testTypes) => {
-  const result = await db.insert(posts).values({
-    title,
-    content,
-    userId,
-  });
-};
-async function deleteTest(id: number) {
-  const result = await db.delete(users).where(eq(users.id, id));
-  return result;
-}
 
-async function getAll() {
-  const result = await db.query.users.findFirst({
-    where: eq(users.id, 2),
-    with: {
-      posts: true,
-    },
-  });
-  return result;
-}
+    // 4. Don't forget to actually decrement the stock while you have it locked!
+    await tx.update(products)
+        .set({ stock: product[0].stock - QTY })
+        .where(eq(products.id, productId))
+})
 
-async function innerJoin() {
-  const data = await db
-    .select({
-      postId: posts.id,
-      Title: posts.title,
-      authorID: users.id,
-      authorName: users.username,
-    })
-    .from(posts)
-    .innerJoin(users, eq(posts.userId, users.id));
-  return data;
-}
-
-async function leftJoin() {
-  const data = await db
-    .select({
-      userId: users.id,
-      username: users.username,
-      postTitle: posts.title,
-    })
-    .from(users)
-    .leftJoin(posts, eq(users.id, posts.userId));
-
-  return data;
-}
-// console.log(await leftJoin());
-//console.log(await innerJoin());
-//console.log(await getAll());
-
-// const result = await update({
-//   title: 'Munnu posting someting',
-//   content: 'Hi, Im munny, doing all the prayers',
-//   userId: 6,
-// });
-// console.log(result);
-
-// const insertResult = await insert({
-//   title: 'another post by u2',
-//   content: 'hiii,, how are you ',
-//   userId: 2,
-// });
-//console.log(insertResult);
-
-// const result = await deleteTest(2);
-// console.log(result);
-console.log('✅ Successfully queried');
-
-const userSchema = Type.Object({
-  name: Type.String(),
-  age: Type.Number(),
-  email: Type.String(),
-});
-
-type userObj = Static<typeof userSchema>;
-
-const obj: userObj = {
-  name: 'John Doe',
-  age: 30,
-  email: 'ahi',
-};
-
-interface FastifyRequestt {
-  url: string;
-  method: string;
-  headers: object;
-}
+console.log("operation successful ✅");
+console.log("operation successfull ✅");

@@ -1,7 +1,5 @@
-import fastify, {
+import  {
   FastifyInstance,
-  FastifyReply,
-  FastifyRequest,
 } from 'fastify';
 import { db } from '../db/db';
 import { users } from '../db/schema';
