@@ -11,18 +11,23 @@ import fastifyCors from '@fastify/cors';
 import fastifySwagger from '@fastify/swagger';
 import fastifySwaggerUi from '@fastify/swagger-ui';
 import { checkoutRoutes } from './routes/CheckOut';
+import { tagRoutes } from './routes/TagRoutes';
+import { postTagRoutes } from './routes/PostTagsRoutes';
 
 export default async function buildApp(): Promise<FastifyInstance> {
 
   //logger
+  // const fastify = Fastify({
+  //   logger: {
+  //     level: 'info',
+  //     transport: {
+  //       target: 'pino-pretty', // Pretty console logs
+  //       options: { translateTime: 'HH:MM:ss Z' },
+  //     },
+  //   },
+  // });
   const fastify = Fastify({
-    logger: {
-      level: 'info',
-      transport: {
-        target: 'pino-pretty', // Pretty console logs
-        options: { translateTime: 'HH:MM:ss Z' },
-      },
-    },
+    logger: false
   });
 
   await fastify.register(fastifyHelmet, {
@@ -91,6 +96,8 @@ export default async function buildApp(): Promise<FastifyInstance> {
   await fastify.register(userRoutes, { prefix: '/api/v1' });
   await fastify.register(PostsRoutes, { prefix: '/api/v1' });
   await fastify.register(checkoutRoutes, { prefix: '/api/v1' })
+  await fastify.register(tagRoutes, { prefix: '/api/v1' })
+  await fastify.register(postTagRoutes, { prefix: '/api/v1' })
 
 
   // custom api testing 
@@ -98,7 +105,7 @@ export default async function buildApp(): Promise<FastifyInstance> {
     return { status: 'ok', timestamp: new Date().toISOString() };
   });
 
-
+  console.log("Server is running ✅");
   // global error handler
   fastify.setErrorHandler((error, request, reply) => {
     // Use the error's statusCode if it exists, otherwise default to 500

@@ -1,5 +1,5 @@
 import { relations } from 'drizzle-orm';
-import { boolean, integer, text } from 'drizzle-orm/pg-core';
+import { boolean, integer, primaryKey, text } from 'drizzle-orm/pg-core';
 import { serial, pgTable, timestamp } from 'drizzle-orm/pg-core';
 
 export const users = pgTable('users', {
@@ -34,17 +34,22 @@ export const posts = pgTable('posts', {
   updatedAt: timestamp('updated_at').defaultNow(),
 });
 
-export const userRelation = relations(users, ({ many }) => ({
-  posts: many(posts),
-}));
+export const tags = pgTable('tags', {
+  id: serial('id').primaryKey(),
+  name: text('name').notNull().unique(),
+  slug: text('slug').notNull().unique(),
+  description: text('description'),
+  createdAt: timestamp('created_at').defaultNow()
+})
 
-export const postsRelation = relations(posts, ({ one }) => ({
-  author: one(users, {
-    fields: [posts.userId],
-    references: [users.id],
-  }),
-}));
-
+//junction table
+export const postTags = pgTable('post_tags', {
+  postId: integer('post_id').references(() => posts.id, { onDelete: 'cascade' }),
+  tagId: integer('tag_id').references(() => tags.id, { onDelete: 'cascade' }),
+  assignedAt: timestamp('assigned_at').defaultNow(),
+}, (table) => ({
+  pk: primaryKey({ columns: [table.postId, table.tagId] })
+}))
 
 export const products = pgTable('products', {
   id: serial('id').primaryKey(),
@@ -69,3 +74,34 @@ export const orderItems = pgTable('order_items', {
   quantity: integer('quantity').notNull(),
   priceAtTime: integer('price_at_time').notNull(), // Snapshot of price
 });
+
+
+export const userRelation = relations(users, ({ many }) => ({
+  posts: many(posts),
+}));
+
+export const postsRelation = relations(posts, ({ one, many }) => ({
+  author: one(users, {
+    fields: [posts.userId],
+    references: [users.id],
+  }),
+  postTags: many(postTags)
+}));
+
+
+export const tagsRelation = relations(tags, ({ many }) => ({
+  postTags: many(postTags) // mean a single row in the tags table can be related to many rows in the post table
+}))
+
+// Junction Relation
+export const postTagsRelation = relations(postTags, ({ one }) => ({
+  post: one(posts, {
+    fields: [postTags.postId],
+    references: [posts.id]
+  }),
+
+  tag: one(tags, {
+    fields: [postTags.tagId],
+    references: [tags.id]
+  })
+}))
