@@ -1,5 +1,5 @@
-import { relations } from 'drizzle-orm';
-import { boolean, integer, primaryKey, text } from 'drizzle-orm/pg-core';
+import { relations, sql } from 'drizzle-orm';
+import { boolean, integer, primaryKey, text, uniqueIndex } from 'drizzle-orm/pg-core';
 import { serial, pgTable, timestamp } from 'drizzle-orm/pg-core';
 
 export const users = pgTable('users', {
@@ -10,7 +10,9 @@ export const users = pgTable('users', {
   passwordHash: text('password_hash').notNull(),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
-});
+}, (table) => ({
+  emailIdx: uniqueIndex('email_idx').on(table.email).where(sql`${table.isActive} = true`)
+}));
 
 export const session = pgTable('sessions', {
   id: serial('id').primaryKey(),

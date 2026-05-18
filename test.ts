@@ -1,43 +1,37 @@
-
-import { eq } from 'drizzle-orm';
+import { and, eq, sql } from 'drizzle-orm';
 import { db } from './src/db/db';
-import { orderItems, orders, posts, products, users } from './src/db/schema';
+import { users } from './src/db/schema';
+import { relDuration } from 'drizzle-orm/gel-core';
+import test from 'node:test';
+
+// const dummyUsers = Array.from({ length: 10000 }, (_, i) => ({
+//     email: `fancy${i - 1}-m@example.com`,
+//     username: `User ${i}`,
+//     age: 20 + (i % 40),
+//     isActive: Math.floor(Math.random() * 20) > 10 ? true : false,
+//     passwordHash: "$2b$10$NAv3VwC6Z4x92kfpSBVWVuZBkLOzB15GbX08wOp4jFHB6psnSle7y"
+// }));
+
+
+let test_email: string = 'fancy9926-m@example.com'
+async function testQueryPerformance() {
+    const startnoindex = Date.now()
+    const user = await db.select().from(users).where(eq(users.email, test_email))
+    const endnoindex = Date.now()
+    console.log(`Query Wihout  index ${endnoindex - startnoindex}ms`);
 
 
 
-let QTY: number = 5
-let userId: number = 4
-let productId: number = 10
+    console.log('\nCreating index');
+    await db.execute(sql`CREATE INDEX IF NOT EXISTS email_idx ON users(email)`)
 
-await db.transaction(async (tx) => {
-    // 1. Used 'tx' (Correct)
-    const product = await tx.select().from(products).where(eq(products.id, productId)).for('update')
 
-    if (!product[0] || product[0].stock < QTY) {
-        // Throwing an error here automatically rolls back the transaction in Drizzle
-        throw new Error('Insufficient stock');
-    }
+    const startWihtindex = Date.now()
+    const userWithIndex = await db.select().from(users).where(eq(users.email, test_email))
+    const endWithindex = Date.now()
+    console.log(`Query Wihout  index ${endWithindex - startWihtindex}ms`);
 
-    // 2. FIXED: Changed 'db' to 'tx'
-    const order = await tx.insert(orders).values({
-        userId,
-        totalAmount: product[0].price * QTY,
-        status: "Placed"
-    }).returning()
-
-    // 3. FIXED: Changed 'db' to 'tx'
-    await tx.insert(orderItems).values({
-        priceAtTime: product[0].price, // Double check: usually you want unit price here, not totalAmount!
-        productId,
-        quantity: QTY,
-        orderId: order[0].id,
-    })
-
-    // 4. Don't forget to actually decrement the stock while you have it locked!
-    await tx.update(products)
-        .set({ stock: product[0].stock - QTY })
-        .where(eq(products.id, productId))
-})
-
-console.log("operation successful ✅");
-console.log("operation successfull ✅");
+    const imporv = ((endnoindex - startnoindex) / (endWithindex - startWihtindex)).toFixed(2)
+    console.log(`Improvement: ${imporv}x`);
+}
+testQueryPerformance()
